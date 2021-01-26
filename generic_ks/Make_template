@@ -49,6 +49,7 @@ G_KS_ALL = \
   eigen_stuff_helpers.o \
   eigen_stuff_Ritz.o \
   eigen_stuff_PRIMME.o \
+  eigen_stuff_Grid.o \
   f_meas.o \
   f_meas_current.o \
   fermion_force_asqtad.o \
@@ -98,6 +99,7 @@ G_KS_ALL = \
   gb_baryon_3pt.o \
   gb_baryon_src.o \
   gb_ops.o \
+  gridStaggEigen.o
   gridStaggInvert.o \
   grsource.o \
   hisq_links_qop.o \
@@ -265,6 +267,8 @@ eigen_stuff_Ritz.o: ../generic_ks/eigen_stuff_Ritz.c
 	${CC} -c ${CFLAGS} $<
 eigen_stuff_PRIMME.o: ../generic_ks/eigen_stuff_PRIMME.c
 	${CC} -c ${CFLAGS} $<
+eigen_stuff_Grid.o: ../generic_ks/eigen_stuff_Grid.c
+	${CC} -c ${CFLAGS} $<
 fermion_force_asqtad.o: ../generic_ks/fermion_force_asqtad.c
 	${CC} -c ${CFLAGS} $<
 fermion_force_asqtad_qop.o: ../generic_ks/fermion_force_asqtad_qop.c
@@ -375,6 +379,8 @@ gb_baryon_src.o: ../generic_ks/gb_baryon_src.c
 	${CC} -c ${CFLAGS} $<
 gb_ops.o: ../generic_ks/gb_ops.c
 	${CC} -c ${CFLAGS} $<
+gridStaggEigen.o: ../generic_ks/gridStaggEigen.cc
+	${CXX} -c ${CXXFLAGS} $<
 gridStaggInvert.o: ../generic_ks/gridStaggInvert.cc
 	${CXX} -c ${CXXFLAGS} $<
 grsource.o: ../generic_ks/grsource.c
