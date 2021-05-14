@@ -322,6 +322,8 @@
 *	file "gaussrand.c"
 * Real z2_rand_no( double_prn *prn_pt );
 *	file "z2rand.c"
+* complex z3_rand_no( double_prn *prn_pt );
+*	file "z3rand.c"
 * void byterevn(u_int32type w[], int n)
 * void byterevn64(u_int32type w[], int n)
 *
@@ -424,6 +426,7 @@ void dump_wilson_vec( wilson_vector *src );
 Real gaussian_rand_no( double_prn *prn_pt );
 complex complex_gaussian_rand_no( double_prn *prn_pt );
 Real z2_rand_no( double_prn *prn_pt );
+complex z3_rand_no( double_prn *prn_pt );
 #include "../include/int32type.h"
 void byterevn(u_int32type w[], int n);
 void byterevn64(u_int32type w[], int n);
