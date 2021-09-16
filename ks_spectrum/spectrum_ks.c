@@ -514,6 +514,7 @@ static void accum_gen_meson(complex **mp, su3_vector *qp0, int naik_index0,
 		    mom_parity_index, fn[naik_index0], fn[naik_index1],
 		    param.spin_taste_snk[pair],
 		    param.meson_phase[pair], param.meson_factor[pair],
+		    param.num_corr_report[pair],
 		    param.corr_index[pair], &param.r_offset_m[pair][0]);
 }
 
@@ -1064,21 +1065,20 @@ static void spectrum_ks_print_diag(int pair){
       param.saveflag_m[pair] = FORGET;
 
     for(m=0;m<num_report;m++) {
-      norm_fac = num_corr_occur[m];
+      norm_fac = 1./(Real)num_corr_occur[m];
 
       print_start_meson_prop(pair, m);
       print_start_fnal_meson_prop(corr_fp, pair, m);
+      //g_veccomplexsum(pmes_prop[m], nt); //TODO: remove. reduction done by quda or contraction_cpu.c
       for(t=0; t<nt; t++){
 	tp = (t + param.r_offset_m[pair][3]) % nt;
 	prop = pmes_prop[m][tp];
-	g_complexsum( &prop );
-	CDIVREAL(prop, norm_fac, prop);
+	CMULREAL(prop, norm_fac, prop);
 	print_meson_prop(pair, t, prop);
 	print_fnal_meson_prop(corr_fp, pair, t, prop);
       }
       print_end_meson_prop(pair);
       print_end_fnal_meson_prop(corr_fp, pair);
-
     } /* mesons and momenta */
     close_fnal_meson_file(corr_fp, pair);
   }
@@ -1106,15 +1106,15 @@ static void spectrum_ks_print_offdiag(int pair){
 
     /* print meson propagators */
     for(m=0;m<num_report;m++) {
-      norm_fac = num_corr_occur[m];
-
+      norm_fac = 1./(Real)num_corr_occur[m];
+      
       print_start_meson_prop(pair, m);
       print_start_fnal_meson_prop(corr_fp, pair, m);
+      //g_veccomplexsum(pmes_prop[m], nt); //TODO: remove. reduction done by quda or contraction_cpu.c
       for(t=0; t<nt; t++){
 	tp = (t + param.r_offset_m[pair][3]) % nt;
 	prop = pmes_prop[m][tp];
-	g_complexsum( &prop );
-	CDIVREAL(prop, norm_fac, prop);
+	CMULREAL(prop, norm_fac, prop);
 	print_meson_prop(pair, t, prop);
 	print_fnal_meson_prop(corr_fp, pair, t, prop);
       }
