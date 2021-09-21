@@ -1405,29 +1405,31 @@ int readin(int prompt) {
 		             symiso_label_src[6], symiso_label_snk[7], sink_tie[7],
 					 cube_pos[7];
 			double factor;
-		        int gb_class_src, gb_class_snk;
+		        int gb_class_src, gb_class_snk, sink_disp;
 
 			IF_OK status += get_sn(stdin, prompt, "correlator", baryon_label_in);
 
 			IF_OK strcpy(param.gbbaryon_label[itriplet][i], baryon_label_in);
 
-			/* phase, op, factor, GTSirrep, symiso, class, sink tieup type, construction*/
+			/* phase, op, factor, GTSirrep, symiso, class, sink tieup type, sink displacement, construction*/
 			IF_OK {
-			  ok = scanf("%s %s %lf %s %s %i %s %s %i %s %s",
+			  ok = scanf("%s %s %lf %s %s %i %s %s %i %i %s %s",
 		                     phase_lab,factor_op,&factor,
 		                     gts_label_src,symiso_label_src,&gb_class_src,
 		                     gts_label_snk,symiso_label_snk,&gb_class_snk,
+							 &sink_disp, 
 							 sink_tie, cube_pos);
 
-			  if(ok != 11){
+			  if(ok != 12){
 			    printf("\nError reading Golterman-Bailey baryon parameters\n");
 			    status++;
 			  }
 			  else {
-			    printf(" %3s %1s %6f %4s %6s %2i %4s %7s %2i %6s %6s\n",
+			    printf(" %3s %1s %6f %4s %6s %2i %4s %7s %2i %1i %6s %6s\n",
 		                   phase_lab,factor_op,factor,
 		                   gts_label_src,symiso_label_src,gb_class_src,
 		                   gts_label_snk,symiso_label_snk,gb_class_snk,
+						   sink_disp,
 						   sink_tie, cube_pos);
 			  }
 			}
@@ -1537,6 +1539,21 @@ int readin(int prompt) {
 			        }
 			      }
 
+	  /* Check input sink displacement */
+      IF_OK {
+        if (sink_disp != 0  &&
+            sink_disp != 1  &&
+            sink_disp != 2  &&
+            sink_disp != 3  &&
+            sink_disp != 4  &&
+            sink_disp != 5  &&
+            sink_disp != 6  &&
+	    sink_disp != 7){
+          printf("error in input: unknown sink displacement (can only be in [0, 7]) %i\n",sink_disp);
+          status++;
+			        }
+			      }
+
       IF_OK {
         param.gbbaryon_src[itriplet][i] =
           decode_gb_op(symiso_label_src,gts_label_src,param.qk8num_s[itriplet],gb_class_src);
@@ -1554,6 +1571,11 @@ int readin(int prompt) {
           status++;
 				      }
 				    }
+
+      IF_OK {
+        param.gb_corr_snk_disp[itriplet][i] = sink_disp;
+				    }
+
       /* Decode sink tieup options for correlator */
       /* Permitted choices are 'point' or 'wall' */
       IF_OK {

@@ -190,6 +190,7 @@ typedef struct {
     char gb_mom_label[MAX_TRIPLET][MAX_CORR][MAX_MOM_LABEL]; /* gb momentum label */
     int  gb_corr_mom[MAX_TRIPLET][MAX_CORR][3];              /* gb correlator momentum */
     char gb_corr_parity[MAX_TRIPLET][MAX_CORR][3];           /* gb correlator parity */
+    int  gb_corr_snk_disp[MAX_TRIPLET][MAX_CORR]; /* Relative source sink displacement */
     short gb_wall[MAX_TRIPLET][MAX_CORR]; /* Baryon with wall tieup or point tieup */
     short gb_corner[MAX_TRIPLET][MAX_CORR]; /* Baryon over corner or full cube */
   #endif

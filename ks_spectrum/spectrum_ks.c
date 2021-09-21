@@ -1432,6 +1432,8 @@ static void print_start_fnal_gb_baryon_prop(FILE *fp, int triplet, int b)
 	  gb_baryon_label(param.gbbaryon_src[triplet][b]));
   fprintf(fp,"gb_baryon_sink:              %s\n",
 	  gb_baryon_label(param.gbbaryon_snk[triplet][b]));
+  fprintf(fp,"gb_baryon_sink_disp:         %i\n", 
+    param.gb_corr_snk_disp[triplet][b]);
   if (param.gb_wall[triplet][b]){
    fprintf(fp,"sink_type:                   wall\n");
   } else {
@@ -1558,19 +1560,20 @@ static void spectrum_ks_print_gb_baryon(int triplet){
         blind_vdcomplex(gb_baryon_prop[b],nt);
       }
 #endif
-      for(t=0; t<nt; t++){
-	tp = (t + param.r_offset_gb[triplet][3]) % nt;
-	prop = gb_baryon_prop[b][tp];
-	g_complexsum( &prop );
-	// CDIVREAL(prop, space_vol, prop);
-	/* Fix sign for antiperiodic bc */
-	if( (((t+param.r_offset_gb[triplet][3])/nt
-	      - param.r_offset_gb[triplet][3]/nt) %2 ) == 1 ){
-	  CMULREAL(prop,-1.,prop);
-	}
-	print_gb_baryon_prop(triplet, t, prop);
-	print_fnal_gb_baryon_prop(corr_fp, triplet, t, prop);
+    for(t=0; t<nt; t++)
+    {
+      tp = (t + param.r_offset_gb[triplet][3]) % nt;
+      prop = gb_baryon_prop[b][tp];
+      g_complexsum( &prop );
+      // CDIVREAL(prop, space_vol, prop);
+      /* Fix sign for antiperiodic bc */
+      if( (((t+param.r_offset_gb[triplet][3])/nt
+            - param.r_offset_gb[triplet][3]/nt) %2 ) == 1 ){
+        CMULREAL(prop,-1.,prop);
       }
+      print_gb_baryon_prop(triplet, t, prop);
+      print_fnal_gb_baryon_prop(corr_fp, triplet, t, prop);
+    }
       print_end_gb_baryon_prop(triplet);
     }
     close_fnal_gb_baryon_file(corr_fp, triplet);
@@ -1593,6 +1596,7 @@ void spectrum_ks_gb_baryon(ks_prop_field **qko0, ks_prop_field **qko1, ks_prop_f
                   param.gbbaryon_src[triplet],
                   param.gbbaryon_snk[triplet],
                   param.gb_spintaste[triplet],
+                  param.gb_corr_snk_disp[triplet],
                   param.gb_wall[triplet],
                   param.gb_corner[triplet],
                   param.qk8num_d[triplet],

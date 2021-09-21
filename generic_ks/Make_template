@@ -99,7 +99,7 @@ G_KS_ALL = \
   gb_baryon_3pt.o \
   gb_baryon_src.o \
   gb_ops.o \
-  gridStaggEigen.o
+  gridStaggEigen.o \
   gridStaggInvert.o \
   grsource.o \
   hisq_links_qop.o \
