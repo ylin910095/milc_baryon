@@ -11,6 +11,7 @@
 #include "../include/openmp_defs.h"
 
 static su3_vector *wtmp[8] ;
+static const char *prec_label[2] = {"F", "D"};
 
 /*------------------------------------------------------------*/
 static void 
@@ -211,7 +212,7 @@ klein_gord_field(su3_vector *psi, su3_vector *chi,
       sub_su3_vector( chi + i, wtmp[XDOWN] + i, chi + i);
       sub_su3_vector( chi + i, wtmp[YDOWN] + i, chi + i);
       sub_su3_vector( chi + i, wtmp[ZDOWN] + i, chi + i);
-    }
+    } 
   } END_LOOP_OMP
 
   cleanup_kg_temps();
@@ -225,7 +226,6 @@ klein_gord_field(su3_vector *psi, su3_vector *chi,
    and Lap_3d is the discrete three dimensional Laplacian
 
 */
-
 #ifdef USE_GSMEAR_QUDA
 void
 gauss_smear_v_field(su3_vector *src, su3_matrix *t_links,
@@ -249,10 +249,11 @@ gauss_smear_v_field(su3_vector *src, su3_matrix *t_links,
     terminate(1);
   }
 
+  double dtime = -dclock();
+
   tmp = create_v_field();
   
   /* We want (1 + ftmp * Lapl ) = (Lapl + 1/ftmp)*ftmp */
-
   for(j = 0; j < iters; j++) {
 
     FORALLSITES_OMP(i,s,){
@@ -262,6 +263,14 @@ gauss_smear_v_field(su3_vector *src, su3_matrix *t_links,
     } END_LOOP_OMP
 
     klein_gord_field(tmp, src, t_links, ftmpinv, t0);
+  }
+ 
+  dtime += dclock();
+
+  if(this_node==0){
+    printf("GSMEAR: time = %e (fn %s) iters = %d\n",
+	   dtime, prec_label[MILC_PRECISION-1], iters);
+    fflush(stdout);
   }
   
   destroy_v_field(tmp);
