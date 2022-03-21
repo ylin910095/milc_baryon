@@ -24,6 +24,7 @@ static unsigned char pub_key[] =
   "-----END PUBLIC KEY-----\n";
 // -------
 // 2019-12-20 production version
+// This blinding factor is for the use of gA production runs ONLY
 static unsigned char blind_crypt[] = {
  0x1a, 0x67, 0x84, 0x28, 0x51, 0x9b, 0x13, 0x49,
  0x5b, 0x24, 0x17, 0x5f, 0x05, 0x18, 0x03, 0xa6,
@@ -36,6 +37,7 @@ static unsigned char blind_crypt[] = {
 };
 const char* blind_short_tag = "072e62e0";
 
+// Blinding factors below are OUTDATED. DON'T UNCOMMENT THEM.
 /*
 // 2016 production version!!
 static unsigned char blind_crypt[] = {
