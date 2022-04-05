@@ -29,6 +29,8 @@
    random_color_wall          Same as above, but on all sites on a time slice.
    random_sparse_z3           Z3 noise source with support separated by
                               skip sites in each dimension.
+   random_antipode_z3         Z3 noise source with two sites separated by (L/2,L/2,L/2)
+   random_tetrahedral_z3      Z3 noise source with four maximally-separated sites
    vector_field_file          List of color fields, replicated for each 
                               of four source spins.
    even_wall                  +1 on even sites.  zero elsewhere.
@@ -457,6 +459,44 @@ static void random_sparse_z3(complex *src, int t0, int x0, int y0, int z0, int s
   }
 }
     
+/* Generate a Z3 noise source with 2 maximally-separated sites
+   Write to file then read in as a 3-color vector source */
+static void random_antipode_z3(complex *src, int t0, int x0, int y0, int z0){
+  int i;
+  site *s;
+
+  FORALLSITES(i,s){
+    if( s->t==t0 || t0 == ALL_T_SLICES){
+      if (s->x == x0 && s->y == y0 && s->z == z0){
+        src[i] = z3_rand_no(&(s->site_prn));
+      } else if (s->x == (x0+nx/2)%nx && s->y == (y0+ny/2)%ny && s->z == (z0+nz/2)%nz){
+        src[i] = z3_rand_no(&(s->site_prn));
+      }
+    }
+  }
+}
+
+/* Generate a Z3 noise source with 4 maximally-separated sites
+   Write to file then read in as a 3-color vector source */
+static void random_tetrahedral_z3(complex *src, int t0, int x0, int y0, int z0){
+  int i;
+  site *s;
+
+  FORALLSITES(i,s){
+    if( s->t==t0 || t0 == ALL_T_SLICES){
+      if (s->x == x0 && s->y == y0 && s->z == z0){
+        src[i] = z3_rand_no(&(s->site_prn));
+      } else if (s->x == (x0+nx/2)%nx && s->y == (y0+ny/2)%ny && s->z == z0){
+        src[i] = z3_rand_no(&(s->site_prn));
+      } else if (s->x == (x0+nx/2)%nx && s->y == y0 && s->z == (z0+nz/2)%nz){
+        src[i] = z3_rand_no(&(s->site_prn));
+      } else if (s->x == x0 && s->y == (y0+ny/2)%ny && s->z == (z0+nz/2)%nz){
+        src[i] = z3_rand_no(&(s->site_prn));
+      }
+    }
+  }
+}
+    
 
 #ifdef HAVE_KS
 
@@ -604,6 +644,8 @@ int is_complex_source(int source_type){
     source_type == POINT ||
     source_type == RANDOM_COMPLEX_WALL ||
     source_type == RANDOM_SPARSE_Z3 ||
+    source_type == RANDOM_ANTIPODE_Z3 ||
+    source_type == RANDOM_TETRAHEDRAL_Z3 ||
     source_type == WAVEFUNCTION_FILE;
 }
 
@@ -695,6 +737,12 @@ int get_complex_source(quark_source *qs){
   }
   else if(source_type == RANDOM_SPARSE_Z3){
     random_sparse_z3(qs->c_src, t0, x0, y0, z0, qs->skip);
+  }
+  else if(source_type == RANDOM_ANTIPODE_Z3){
+    random_antipode_z3(qs->c_src, t0, x0, y0, z0);
+  }
+  else if(source_type == RANDOM_TETRAHEDRAL_Z3){
+    random_tetrahedral_z3(qs->c_src, t0, x0, y0, z0);
   }
   else if(source_type == WAVEFUNCTION_FILE){
     int stride = 1;
@@ -1244,6 +1292,8 @@ static int ask_quark_source( FILE *fp, int prompt, int *source_type,
     printf("\n     ");
     printf("'random_color_wall', ");
     printf("'random_sparse_z3', ");
+    printf("'random_antipode_z3', ");
+    printf("'random_tetrahedral_z3', ");
     printf("'vector_field', ");
     printf("'vector_field_fm' ");
     printf("\n     ");
@@ -1329,6 +1379,14 @@ static int ask_quark_source( FILE *fp, int prompt, int *source_type,
   else if(strcmp("random_sparse_z3",savebuf) == 0 ){
     *source_type = RANDOM_SPARSE_Z3;
     strcpy(descrp,"random_sparse_z3");
+  }
+  else if(strcmp("random_antipode_z3",savebuf) == 0 ){
+    *source_type = RANDOM_ANTIPODE_Z3;
+    strcpy(descrp,"random_antipode_z3");
+  }
+  else if(strcmp("random_tetrahedral_z3",savebuf) == 0 ){
+    *source_type = RANDOM_TETRAHEDRAL_Z3;
+    strcpy(descrp,"random_tetrahedral_z3");
   }
   else if(strcmp("wavefunction",savebuf) == 0 ){
     *source_type = WAVEFUNCTION_FILE;
@@ -1480,6 +1538,16 @@ static int get_quark_source(int *status_p, FILE *fp, int prompt,
     IF_OK status += get_i(fp, prompt, "t0", &source_loc[3]);
     IF_OK status += get_vi(fp, prompt, "r0", source_loc, 3);
     IF_OK status += get_i(fp, prompt, "skip", &(qs->skip));
+    IF_OK status += get_vi(fp, prompt, "momentum", qs->mom, 3);
+  }
+  else if ( source_type == RANDOM_ANTIPODE_Z3 ){
+    IF_OK status += get_i(fp, prompt, "t0", &source_loc[3]);
+    IF_OK status += get_vi(fp, prompt, "r0", source_loc, 3);
+    IF_OK status += get_vi(fp, prompt, "momentum", qs->mom, 3);
+  }
+  else if ( source_type == RANDOM_TETRAHEDRAL_Z3 ){
+    IF_OK status += get_i(fp, prompt, "t0", &source_loc[3]);
+    IF_OK status += get_vi(fp, prompt, "r0", source_loc, 3);
     IF_OK status += get_vi(fp, prompt, "momentum", qs->mom, 3);
   }
   else if ( source_type == WAVEFUNCTION_FILE ){
@@ -1806,6 +1874,20 @@ void print_source_info(FILE *fp, char prefix[], quark_source *qs){
 	    qs->mom[1], qs->mom[2]);
   }
   else if ( source_type == RANDOM_SPARSE_Z3 ){
+    fprintf(fp,"%s %d\n", make_tag(prefix, "t0"), qs->t0);
+    fprintf(fp,"%s %d %d %d\n", make_tag(prefix, "r0"), qs->x0, qs->y0, qs->z0);
+    fprintf(fp,"%s %d\n", make_tag(prefix, "skip"), qs->skip);
+    fprintf(fp,"%s [ %d, %d, %d ]\n", make_tag(prefix, "mom"), qs->mom[0],
+	    qs->mom[1], qs->mom[2]);
+  }
+  else if ( source_type == RANDOM_ANTIPODE_Z3 ){
+    fprintf(fp,"%s %d\n", make_tag(prefix, "t0"), qs->t0);
+    fprintf(fp,"%s %d %d %d\n", make_tag(prefix, "r0"), qs->x0, qs->y0, qs->z0);
+    fprintf(fp,"%s %d\n", make_tag(prefix, "skip"), qs->skip);
+    fprintf(fp,"%s [ %d, %d, %d ]\n", make_tag(prefix, "mom"), qs->mom[0],
+	    qs->mom[1], qs->mom[2]);
+  }
+  else if ( source_type == RANDOM_TETRAHEDRAL_Z3 ){
     fprintf(fp,"%s %d\n", make_tag(prefix, "t0"), qs->t0);
     fprintf(fp,"%s %d %d %d\n", make_tag(prefix, "r0"), qs->x0, qs->y0, qs->z0);
     fprintf(fp,"%s %d\n", make_tag(prefix, "skip"), qs->skip);
