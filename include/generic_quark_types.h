@@ -71,6 +71,7 @@ enum source_type {
   PROJECT_T_SLICE,
   RANDOM_COMPLEX_WALL,
   RANDOM_COLOR_WALL,
+  RANDOM_SPARSE_Z3,
   ROTATE_3D,
   SAVE_VECTOR_SRC,
   SPIN_TASTE,
@@ -229,6 +230,7 @@ typedef struct {
   int color;          /* Counter for source colors generated */
   int ncolor;         /* number of source su3_vectors to be generated*/
   int spin_snk;       /* Counter for KS propagators from a Dirac source */
+  int skip;           /* Number of sites to skip between support in sparse sources */
 
   Real a;             /* Lattice spacing for converting wave function file */
   int x0,y0,z0,t0;    /* source coordinates for most */ 

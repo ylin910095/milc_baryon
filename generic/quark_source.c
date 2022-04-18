@@ -27,6 +27,8 @@
    Color vector field options:
    
    random_color_wall          Same as above, but on all sites on a time slice.
+   random_sparse_z3           Z3 noise source with support separated by
+                              skip sites in each dimension.
    vector_field_file          List of color fields, replicated for each 
                               of four source spins.
    even_wall                  +1 on even sites.  zero elsewhere.
@@ -135,6 +137,7 @@ void init_qs(quark_source *qs){
   qs->y0               = 0;
   qs->z0               = 0;
   qs->t0               = 0;
+  qs->skip             = 100000;
   qs->r0               = 0.;
   qs->descrp[0]        = '\0';
   qs->mom[0]           = 0;
@@ -436,7 +439,24 @@ static void random_complex_wall(complex *src, int t0){
     CMULREAL( src[i], x, src[i] );
   }
 }
-    
+
+/* Generate a random source from Z3 noise
+   Write to file then read in as a 3-color vector source */
+static void random_sparse_z3(complex *src, int t0, int x0, int y0, int z0, int skip){
+  int i;
+  site *s;
+
+  FORALLSITES(i,s){
+    if( s->t==t0 || t0 == ALL_T_SLICES){
+      if (s->x %skip == x0 && s->y %skip == y0 && s->z %skip == z0){
+        src[i] = z3_rand_no(&(s->site_prn));
+        //printf("site (%d,%d,%d,%d) z3 noise: %10.5e %10.5e\n",
+        //  s->x, s->y, s->z, s->t, src[i].real, src[i].imag );
+      }
+    }
+  }
+}
+
 
 #ifdef HAVE_KS
 
@@ -671,6 +691,9 @@ int get_complex_source(quark_source *qs){
   else if(source_type == RANDOM_COMPLEX_WALL){
     random_complex_wall(qs->c_src, t0);
     subset_mask_c(qs->c_src, qs->subset, t0);
+  }
+  else if(source_type == RANDOM_SPARSE_Z3){
+    random_sparse_z3(qs->c_src, t0, x0, y0, z0, qs->skip);
   }
   else if(source_type == WAVEFUNCTION_FILE){
     int stride = 1;
@@ -1219,6 +1242,7 @@ static int ask_quark_source( FILE *fp, int prompt, int *source_type,
     printf("'wavefunction', ");
     printf("\n     ");
     printf("'random_color_wall', ");
+    printf("'random_sparse_z3', ");
     printf("'vector_field', ");
     printf("'vector_field_fm' ");
     printf("\n     ");
@@ -1300,6 +1324,10 @@ static int ask_quark_source( FILE *fp, int prompt, int *source_type,
   else if(strcmp("random_complex_wall",savebuf) == 0 ){
     *source_type = RANDOM_COMPLEX_WALL;
     strcpy(descrp,"random_complex_wall");
+  }
+  else if(strcmp("random_sparse_z3",savebuf) == 0 ){
+    *source_type = RANDOM_SPARSE_Z3;
+    strcpy(descrp,"random_sparse_z3");
   }
   else if(strcmp("wavefunction",savebuf) == 0 ){
     *source_type = WAVEFUNCTION_FILE;
@@ -1445,6 +1473,12 @@ static int get_quark_source(int *status_p, FILE *fp, int prompt,
   }
   else if ( source_type == RANDOM_COMPLEX_WALL ){
     IF_OK status += get_i(fp, prompt, "t0", &source_loc[3]);
+    IF_OK status += get_vi(fp, prompt, "momentum", qs->mom, 3);
+  }
+  else if ( source_type == RANDOM_SPARSE_Z3 ){
+    IF_OK status += get_i(fp, prompt, "t0", &source_loc[3]);
+    IF_OK status += get_vi(fp, prompt, "r0", source_loc, 3);
+    IF_OK status += get_i(fp, prompt, "skip", &(qs->skip));
     IF_OK status += get_vi(fp, prompt, "momentum", qs->mom, 3);
   }
   else if ( source_type == WAVEFUNCTION_FILE ){
@@ -1769,6 +1803,13 @@ void print_source_info(FILE *fp, char prefix[], quark_source *qs){
     fprintf(fp,"%s %d\n", make_tag(prefix, "ncolor"), qs->ncolor);
     fprintf(fp,"%s [ %d, %d, %d ]\n", make_tag(prefix, "mom"), qs->mom[0],
 	    qs->mom[1], qs->mom[2]);
+  }
+  else if ( source_type == RANDOM_SPARSE_Z3 ){
+    fprintf(fp,"%s %d\n", make_tag(prefix, "t0"), qs->t0);
+    fprintf(fp,"%s %d %d %d\n", make_tag(prefix, "r0"), qs->x0, qs->y0, qs->z0);
+    fprintf(fp,"%s %d\n", make_tag(prefix, "skip"), qs->skip);
+    fprintf(fp,"%s [ %d, %d, %d ]\n", make_tag(prefix, "mom"), qs->mom[0],
+           qs->mom[1], qs->mom[2]);
   }
   else if ( source_type == VECTOR_FIELD_FILE ||
 	    source_type == VECTOR_FIELD_FM_FILE ){
