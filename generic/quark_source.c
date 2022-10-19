@@ -603,6 +603,7 @@ int is_complex_source(int source_type){
     source_type == GAUSSIAN ||
     source_type == POINT ||
     source_type == RANDOM_COMPLEX_WALL ||
+    source_type == RANDOM_SPARSE_Z3 ||
     source_type == WAVEFUNCTION_FILE;
 }
 
