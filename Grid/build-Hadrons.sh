@@ -55,7 +55,7 @@ then
             --prefix=${INSTALLDIR} \
             --with-grid=${GRIDINSTALLDIR} \
             CXX="${PK_CXX}" CC="${PK_CC}" \
-            CXXFLAGS="-std=gnu++17 -fpermissive -Wno-psabi" \
+            CXXFLAGS="-std=gnu++17 -O0 -g -fpermissive -Wno-psabi" \
 
        status=$?
              ;;
@@ -103,11 +103,10 @@ then
     gpu-cuda)
 	# Cori: salloc -C gpu -t 60 -N 1 -c 10 --gres=gpu:1 -A m1759
 	${SRCDIR}/configure \
-            --prefix ${INSTALLDIR}      \
-            --with-grid=${GRIDINSTALLDIR} \
-            CXX=nvcc  CC="${PK_CC}"      \
-            LDFLAGS=-L$HOME/prefix/lib/ \
-            CXXFLAGS="-ccbin ${PK_CXX} -gencode arch=compute_70,code=sm_70 -I$HOME/prefix/include/ -std=c++11" 
+        --prefix ${INSTALLDIR}      \
+        --with-grid=${GRIDINSTALLDIR} \
+        --host=x86_64-unknown-linux-gnu
+
         status=$?
         echo "Configure exit status $status"
 	;;
@@ -122,7 +121,7 @@ then
       echo "Quitting because of configure errors"
   else
     echo "Building in ${BUILDDIR}"
-    ${MAKE} -k -j4
+    ${MAKE} -k -j16
 
     echo "Installing in ${INSTALLDIR}"
     ${MAKE} install
