@@ -226,16 +226,8 @@ klein_gord_field(su3_vector *psi, su3_vector *chi,
    and Lap_3d is the discrete three dimensional Laplacian
 
 */
-#ifdef USE_GSMEAR_QUDA
-void
-gauss_smear_v_field(su3_vector *src, su3_matrix *t_links,
-        Real width, int iters, int t0)
-{
-  gauss_smear_v_field_QUDA( src, t_links, width, iters, t0 );
-}
-#else
 void 
-gauss_smear_v_field(su3_vector *src, su3_matrix *t_links,
+gauss_smear_v_field_cpu(su3_vector *src, su3_matrix *t_links,
 		    Real width, int iters, int t0)
 {
   su3_vector *tmp;
@@ -275,6 +267,27 @@ gauss_smear_v_field(su3_vector *src, su3_matrix *t_links,
   
   destroy_v_field(tmp);
 }
+
+/*------------------------------------------------------------*/
+#if defined(HAVE_QUDA) && defined(USE_GSMEAR_QUDA)
+void
+gauss_smear_v_field(su3_vector *src, su3_matrix *t_links,
+        Real width, int iters, int t0)
+{
+  gauss_smear_reuse_2link_QUDA( 0 );
+  gauss_smear_v_field_QUDA( src, t_links, width, iters, t0 );
+  gauss_smear_delete_2link_QUDA();
+}
+
+#else
+
+void
+gauss_smear_v_field(su3_vector *src, su3_matrix *t_links,
+        Real width, int iters, int t0)
+{
+  gauss_smear_v_field_cpu( src, t_links, width, iters, t0 );
+}
+
 #endif
 
 /*------------------------------------------------------------*/
