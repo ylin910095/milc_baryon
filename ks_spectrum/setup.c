@@ -1691,7 +1691,8 @@ int readin(int prompt) {
   fermion_links_want_deps(1);
 #endif
 
-  fn_links = create_fermion_links_from_site(MILC_PRECISION, n_naiks, eps_naik);
+  if (fn_links == NULL) 
+    fn_links = create_fermion_links_from_site(MILC_PRECISION, n_naiks, eps_naik);
 
 #else
 
@@ -1699,7 +1700,8 @@ int readin(int prompt) {
   fermion_links_want_du0(1);
 #endif
 
-  fn_links = create_fermion_links_from_site(MILC_PRECISION, 0, NULL);
+  if (fn_links == NULL) 
+    fn_links = create_fermion_links_from_site(MILC_PRECISION, 0, NULL);
 
 #endif
 
